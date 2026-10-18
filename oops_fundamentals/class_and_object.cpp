@@ -52,8 +52,13 @@ class Order {
             cout << "Order placed successfully." << endl;
         }
 
+        // Destructor: runs automatically when the object goes out of scope.
         ~Order() {
-            cout << "Order cancelled and resources released." << endl;
+            if (placed) {
+                cout << "Order object destroyed, resources released." << endl;
+            } else {
+                cout << "Order cancelled and resources released." << endl;
+            }
         }
 };
 
