@@ -29,3 +29,7 @@ class_and_object
 
 # Build output directory used in README commands
 build/
+
+.vercel/
+
+.code-review-graph/

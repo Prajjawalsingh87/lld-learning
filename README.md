@@ -57,3 +57,14 @@ GitHub Actions ([build.yml](.github/workflows/build.yml)) compiles every `.cpp` 
 1. Put it in a topic folder, for example `oops_fundamentals/` or `design_patterns/`, as a `snake_case.cpp` file.
 2. Add a row to the index above with a one-line key concept.
 3. If a file is intentionally partial (has no `main`), CI compiles it with `-c` only.
+
+
+## One-command local verification
+
+Run `python3 scripts/build.py` from any directory. Requires Python 3 and GCC with
+C++17 support. Set `CXX` to choose another GCC executable. Binaries keep their
+source directory structure under `build/`, so exercises with the same filename
+do not overwrite one another. Partial examples without `main` compile to objects.
+The command compiles examples; it does not run programs that may wait for stdin.
+
+These are native C++ exercises, not web applications; Vercel hosting is not applicable.
