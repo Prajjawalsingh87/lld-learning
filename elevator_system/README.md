@@ -80,5 +80,5 @@ With `C` cars, `F` floors and `Q` queued calls per tick:
 `elevator_system_test.cpp` checks the exact state sequence for one trip, the SCAN order versus the request order, finishing a sweep before reversing, down calls served on the way back, reversing at a down call, nearest-car and same-direction dispatch, merging duplicate calls, input validation, and a 3-car / 20-floor randomized simulation in which every request must be served.
 
 ```bash
-g++ -std=c++17 -Wall elevator_system/elevator_system_test.cpp -o build/elevator_system_test && ./build/elevator_system_test
+mkdir -p build && g++ -std=c++17 -Wall elevator_system/elevator_system_test.cpp -o build/elevator_system_test && ./build/elevator_system_test
 ```

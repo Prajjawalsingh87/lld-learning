@@ -64,6 +64,9 @@ classDiagram
 | Bursts | Allowed up to `capacity` | Never more than `limit` in any window |
 | Memory per client | O(1) | O(limit) timestamps |
 | Accuracy | Average rate | Exact over any window, with no boundary burst (unlike a fixed window counter) |
+| Per-client state | One bucket per key, never removed | One log per key, never removed |
+
+Both limiters keep an entry for every client key they have seen. With unbounded keys (for example IP addresses), memory grows without limit. In production, run a periodic sweep that drops idle entries (a full bucket or an empty log carries no information), or cap the map with an LRU (see [lru_cache/](../lru_cache/)). For a fleet of servers, keep the state in a shared store such as Redis instead.
 
 ## Complexity
 
@@ -77,5 +80,5 @@ classDiagram
 `rate_limiter_test.cpp` covers bursts, refill timing to the millisecond, the capacity cap after a very long idle time, fractional rates, independent clients, rolling window eviction, the fixed-window boundary case, both limiters through the interface, and an 8-thread contention test that must allow exactly `capacity` requests. That test is also clean under ThreadSanitizer.
 
 ```bash
-g++ -std=c++17 -Wall rate_limiter/rate_limiter_test.cpp -o build/rate_limiter_test && ./build/rate_limiter_test
+mkdir -p build && g++ -std=c++17 -Wall rate_limiter/rate_limiter_test.cpp -o build/rate_limiter_test && ./build/rate_limiter_test
 ```

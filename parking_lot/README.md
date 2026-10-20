@@ -77,8 +77,8 @@ For a very large lot, keep a free list (or a min-heap) per spot size per level t
 
 ## Tests
 
-`parking_lot_test.cpp` covers vehicle/spot compatibility, best fit, level overflow and a full lot, hourly rounding, the grace period, per-type rates, swapping the fee strategy, and the error cases.
+`parking_lot_test.cpp` covers vehicle/spot compatibility, best fit, level overflow and a full lot, hourly rounding, the grace period, per-type rates, swapping the fee strategy, and the error cases (duplicate level numbers, missing rates, and an `exit` that fails during pricing must leave the vehicle parked).
 
 ```bash
-g++ -std=c++17 -Wall parking_lot/parking_lot_test.cpp -o build/parking_lot_test && ./build/parking_lot_test
+mkdir -p build && g++ -std=c++17 -Wall parking_lot/parking_lot_test.cpp -o build/parking_lot_test && ./build/parking_lot_test
 ```

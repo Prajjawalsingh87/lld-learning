@@ -90,6 +90,7 @@ inline int run_all() {
     for (const TestCase& test : registry()) {
         current_failures() = 0;
         std::printf("[ RUN  ] %s\n", test.name);
+        std::fflush(stdout);  // keep the test name in CI logs even if the test crashes
         try {
             test.fn();
         } catch (const AbortTest&) {
@@ -105,6 +106,7 @@ inline int run_all() {
             std::printf("[ FAIL ] %s (%d failed check(s))\n", test.name, current_failures());
             ++failed_tests;
         }
+        std::fflush(stdout);
     }
     const int total = static_cast<int>(registry().size());
     std::printf("\n%d/%d tests passed\n", total - failed_tests, total);

@@ -55,5 +55,5 @@ index_ (hash map)            entries_ (doubly linked list)
 `lru_cache_test.cpp` covers hits and misses, eviction order, recency refresh on `get` and on update, capacity 1 and 0, and a 2000-step randomized comparison against a simple reference model.
 
 ```bash
-g++ -std=c++17 -Wall lru_cache/lru_cache_test.cpp -o build/lru_cache_test && ./build/lru_cache_test
+mkdir -p build && g++ -std=c++17 -Wall lru_cache/lru_cache_test.cpp -o build/lru_cache_test && ./build/lru_cache_test
 ```

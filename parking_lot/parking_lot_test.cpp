@@ -131,4 +131,33 @@ TEST(freed_spot_is_reused) {
     CHECK(t3->id != t1->id);  // ticket ids are never reused
 }
 
+TEST(duplicate_level_numbers_are_rejected) {
+    std::vector<Level> levels;
+    levels.emplace_back(1, 1, 1, 1);
+    levels.emplace_back(1, 1, 1, 1);
+    CHECK_THROWS(ParkingLot(std::move(levels), standard_rates()), std::invalid_argument);
+}
+
+TEST(hourly_strategy_requires_a_rate_for_every_vehicle_type) {
+    using Rates = std::map<VehicleType, Money>;
+    CHECK_THROWS(HourlyFeeStrategy(Rates{{VehicleType::Car, 200}}), std::invalid_argument);
+}
+
+// A strategy that fails, to check that exit() is all-or-nothing.
+class BrokenFeeStrategy : public FeeStrategy {
+public:
+    Money calculate(VehicleType, Minutes) const override { throw std::runtime_error("pricing service down"); }
+};
+
+TEST(failed_fee_calculation_leaves_vehicle_parked) {
+    ParkingLot lot = make_lot();
+    auto ticket = lot.park({"CAR-1", VehicleType::Car}, Minutes(0));
+    lot.set_fee_strategy(std::make_unique<BrokenFeeStrategy>());
+    CHECK_THROWS(lot.exit(ticket->id, Minutes(30)), std::runtime_error);
+    CHECK(lot.is_parked("CAR-1"));
+    CHECK_EQ(lot.free_spots(SpotSize::Compact), 1);
+    lot.set_fee_strategy(std::make_unique<FlatFeeStrategy>(500));
+    CHECK_EQ(lot.exit(ticket->id, Minutes(30)).fee, 500);  // the ticket is still valid
+}
+
 MINI_TEST_MAIN()

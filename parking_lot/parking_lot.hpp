@@ -139,7 +139,11 @@ public:
 class HourlyFeeStrategy : public FeeStrategy {
 public:
     HourlyFeeStrategy(std::map<VehicleType, Money> rate_per_hour, Minutes grace = Minutes(0))
-        : rates_(std::move(rate_per_hour)), grace_(grace) {}
+        : rates_(std::move(rate_per_hour)), grace_(grace) {
+        for (VehicleType t : {VehicleType::Motorcycle, VehicleType::Car, VehicleType::Truck})
+            if (!rates_.count(t)) throw std::invalid_argument(std::string("missing hourly rate for ") + to_string(t));
+        if (grace_ < Minutes(0)) throw std::invalid_argument("grace period cannot be negative");
+    }
 
     Money calculate(VehicleType type, Minutes duration) const override {
         if (duration <= grace_) return 0;
@@ -169,6 +173,11 @@ public:
     ParkingLot(std::vector<Level> levels, std::unique_ptr<FeeStrategy> fees)
         : levels_(std::move(levels)), fees_(std::move(fees)) {
         if (!fees_) throw std::invalid_argument("fee strategy is required");
+        // Spot ids embed the level number, so level numbers must be unique.
+        for (std::size_t i = 0; i < levels_.size(); ++i)
+            for (std::size_t j = i + 1; j < levels_.size(); ++j)
+                if (levels_[i].number() == levels_[j].number())
+                    throw std::invalid_argument("duplicate level number " + std::to_string(levels_[i].number()));
     }
 
     // Parks the vehicle on the lowest level that has a fitting spot.
@@ -197,12 +206,16 @@ public:
         const Ticket ticket = it->second;
         if (exit_time < ticket.entry_time) throw std::invalid_argument("exit time is before entry time");
 
-        level(ticket.level).spot(ticket.spot_id).release();
+        // Compute everything that can throw before changing any state, so a failed
+        // exit leaves the vehicle parked and the ticket usable.
+        const Minutes duration = exit_time - ticket.entry_time;
+        const Money fee = fees_->calculate(ticket.vehicle.type, duration);
+        ParkingSpot& spot = level(ticket.level).spot(ticket.spot_id);
+
+        spot.release();
         active_.erase(it);
         plate_to_ticket_.erase(ticket.vehicle.plate);
-
-        const Minutes duration = exit_time - ticket.entry_time;
-        return Receipt{ticket, exit_time, duration, fees_->calculate(ticket.vehicle.type, duration)};
+        return Receipt{ticket, exit_time, duration, fee};
     }
 
     // Swap pricing at runtime (e.g. weekend rates) without touching the lot logic.
